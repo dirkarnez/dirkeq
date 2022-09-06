@@ -1,4 +1,8 @@
 #include <iostream>
+#include <cstdio>
+
+#include "reader.h"
+#include "writer.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -14,7 +18,6 @@ void acquire_from_somewhere(fftw_complex* signal) {
     /* Generate two sine waves of different frequencies and
      * amplitudes.
      */
-    
     int i;
     for (i = 0; i < NUM_POINTS; ++i) {
         double theta = (double)i / (double)NUM_POINTS * M_PI;
@@ -41,6 +44,21 @@ void do_something_with(fftw_complex* result) {
 /* Resume reading here */
 
 int main() {
+
+    const std::string file_name = "waveform.wav";
+
+    const float sampleRate = 44100;
+    const float bitDepth = 16;
+
+    SineOscillator sineOscillator(440, 0.5, sampleRate);
+
+    Writer writer(sampleRate, bitDepth);
+    writer.write(file_name, [&sineOscillator]() { 
+        return sineOscillator.process(); 
+    });
+
+
+
     fftw_complex signal[NUM_POINTS];
     fftw_complex result[NUM_POINTS];
 
@@ -53,8 +71,7 @@ int main() {
     acquire_from_somewhere(signal);
     fftw_execute(plan);
     do_something_with(result);
-
     fftw_destroy_plan(plan);
-
+    std::cin.get();
     return 0;
 }

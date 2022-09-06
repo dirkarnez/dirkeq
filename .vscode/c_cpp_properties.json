@@ -4,7 +4,8 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "D:/Code Projects/cpp-libraries/fftw3-v3.3.10-x86_64-posix-seh-rev0-8.1.0/include"
+                "D:/Code Projects/cpp-libraries/fftw3-v3.3.10-x86_64-posix-seh-rev0-8.1.0/include",
+                "D:/Code Projects/wavefile/build/wavefile-installation/include"
             ],
             "defines": [
                 "_DEBUG",
