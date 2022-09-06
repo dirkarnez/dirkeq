@@ -1,54 +1,60 @@
 #include <iostream>
-#include <fftw3.h>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include <fftw3.h>
 
-int main(void)
-{
-  const int N = 16;
+#define NUM_POINTS 64
 
-  fftw_complex in[N], out[N], in2[N]; /* double [2] */
-  fftw_plan p, q;
-  int i;
+/* Never mind this bit */
+#define REAL 0
+#define IMAG 1
 
-  /* prepare a cosine wave */
-  for (i = 0; i < N; i++)
-  {
-    in[i][0] = cos(3 * 2 * M_PI * i / N);
-    in[i][1] = 0;
-  }
+void acquire_from_somewhere(fftw_complex* signal) {
+    /* Generate two sine waves of different frequencies and
+     * amplitudes.
+     */
+    
+    int i;
+    for (i = 0; i < NUM_POINTS; ++i) {
+        double theta = (double)i / (double)NUM_POINTS * M_PI;
 
-  /* forward Fourier transform, save the result in 'out' */
-  p = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
-  fftw_execute(p);
-  for (i = 0; i < N; i++)
-  {
-    printf("freq: %3d %+9.5f %+9.5f I\n", i, out[i][0], out[i][1]);
-  }
-  fftw_destroy_plan(p);
+        signal[i][REAL] = 1.0 * cos(10.0 * theta) +
+                          0.5 * cos(25.0 * theta);
 
-  /* backward Fourier transform, save the result in 'in2' */
-  printf("\nInverse transform:\n");
-  q = fftw_plan_dft_1d(N, out, in2, FFTW_BACKWARD, FFTW_ESTIMATE);
-  fftw_execute(q);
+        signal[i][IMAG] = 1.0 * sin(10.0 * theta) +
+                          0.5 * sin(25.0 * theta);
+    }
+}
 
-  /* normalize */
-  for (i = 0; i < N; i++)
-  {
-    in2[i][0] *= 1. / N;
-    in2[i][1] *= 1. / N;
-  }
+void do_something_with(fftw_complex* result) {
+    int i;
+    for (i = 0; i < NUM_POINTS; ++i) {
+        double mag = sqrt(result[i][REAL] * result[i][REAL] +
+                          result[i][IMAG] * result[i][IMAG]);
 
-  for (i = 0; i < N; i++)
-  {
-    printf("recover: %3d %+9.5f %+9.5f I vs. %+9.5f %+9.5f I\n",
-           i, in[i][0], in[i][1], in2[i][0], in2[i][1]);
-  }
-  fftw_destroy_plan(q);
+        printf("%g\n", mag);
+    }
+}
 
-  fftw_cleanup();
 
-  std::cin.get();
-  return 0;
+/* Resume reading here */
+
+int main() {
+    fftw_complex signal[NUM_POINTS];
+    fftw_complex result[NUM_POINTS];
+
+    fftw_plan plan = fftw_plan_dft_1d(NUM_POINTS,
+                                      signal,
+                                      result,
+                                      FFTW_FORWARD,
+                                      FFTW_ESTIMATE);
+
+    acquire_from_somewhere(signal);
+    fftw_execute(plan);
+    do_something_with(result);
+
+    fftw_destroy_plan(plan);
+
+    return 0;
 }
